@@ -305,9 +305,37 @@ class NeuralNetwork:
                 w_key = f"W{i}"
                 b_key = f"b{i}"
                 if w_key in weight_dict:
-                    layer.W = weight_dict[w_key].copy()
+                    loaded_W = weight_dict[w_key].copy()
+                    expected_shape = (layer.input_size, layer.output_size)
+                    
+                    # Check if dimensions match exactly
+                    if loaded_W.shape == expected_shape:
+                        layer.W = loaded_W
+                    # Check if dimensions are transposed
+                    elif loaded_W.shape == (layer.output_size, layer.input_size):
+                        print(f"Warning: W{i} loaded with transposed shape {loaded_W.shape}, expected {expected_shape}. Auto-transposing.")
+                        layer.W = loaded_W.T
+                    else:
+                        raise ValueError(f"Weight dimension mismatch for W{i}: loaded shape {loaded_W.shape}, "
+                                       f"expected {expected_shape} or transposed {(layer.output_size, layer.input_size)}. "
+                                       f"Layer expects input_size={layer.input_size}, output_size={layer.output_size}")
+                
                 if b_key in weight_dict:
-                    layer.b = weight_dict[b_key].copy()
+                    loaded_b = weight_dict[b_key].copy()
+                    expected_b_shape = (1, layer.output_size)
+                    
+                    # Handle different bias shapes
+                    if loaded_b.shape == expected_b_shape:
+                        layer.b = loaded_b
+                    elif loaded_b.shape == (layer.output_size,):
+                        # Reshape 1D bias to 2D
+                        layer.b = loaded_b.reshape(1, -1)
+                    elif loaded_b.shape == (layer.output_size, 1):
+                        # Transpose if needed
+                        layer.b = loaded_b.T
+                    else:
+                        raise ValueError(f"Bias dimension mismatch for b{i}: loaded shape {loaded_b.shape}, "
+                                       f"expected {expected_b_shape}")
 
     def save_weights(self, model_save_path):
         """
