@@ -72,26 +72,15 @@ class CrossEntropy:
         Computes gradient of Cross-Entropy Loss wrt output predictions
         Args:
             y_true: shape = (batch_size, output_size) - True labels 
-            y_pred: shape = (batch_size, output_size) - Predictions
+            y_pred: shape = (batch_size, output_size) - Predictions (raw logits)
         Returns:
             dZ: shape = (batch_size, output_size) - Gradient of loss wrt output predictions
         """
-        batch_size = y_true.shape[0]
-        if hasattr(self, 'output') and self.output is not None:
-            y_pred = self.output
-        else:
-            # If model output is raw logits
-            # Apply softmax
-            softmax = Softmax()
-            y_pred = softmax.forward(y_pred)
-        # Else use y_pred directly.
-        epsilon = 1e-15
-        y_pred_clipped = np.clip(y_pred, epsilon, 1 - epsilon) # for numerical stability
-        # NOTE: Removed batch_size normalization - autograder may expect unnormalized gradients
-        dZ = (y_pred_clipped - y_true)
-
-        # If model output is already softmax probabilities, then the gradient is:
-        # dZ = (1 / batch_size) * (y_true / y_pred_clipped) # Ensure then to have explicit softmax activation in the output layer. The gradient is complicated but computed in softmax.backward for reference.
+        # If model output is raw logits, apply softmax
+        softmax = Softmax()
+        y_pred_softmax = softmax.forward(y_pred)
+        # NOTE: If normalized by batch_size in loss, then do not normalize gradient by batch_size. Normalize either in loss or gradient.
+        dZ = (y_pred_softmax - y_true)
         return dZ
 
 if __name__ == "__main__":
