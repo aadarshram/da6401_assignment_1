@@ -38,12 +38,11 @@ class NeuralLayer:
         Returns:
             dX: shape = (batch_size, input_size) - Gradient of loss wrt layer input
         """
-        batch_size = self.X.shape[0]
+        # Compute gradients without batch normalization
+        self.grad_W = np.matmul(self.X.T, dZ)
+        self.grad_b = np.sum(dZ, axis=0, keepdims=True)
         
-        self.grad_W = np.matmul(self.X.T, dZ) / batch_size # Average gradient over batch
-        self.grad_b = np.sum(dZ, axis=0, keepdims=True) / batch_size # Average gradient over batch
-        
-        dX = np.matmul(dZ, self.W.T) # shape: (batch_size, ouptut_size) x (output_size, input_size) = (batch_size, input_size)
+        dX = np.matmul(dZ, self.W.T)
         return dX
 
 if __name__ == "__main__":

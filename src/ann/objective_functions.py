@@ -34,8 +34,8 @@ class MSE:
             dZ: shape = (batch_size, output_size) - Gradient of loss wrt output predictions
         """
         batch_size = y_true.shape[0]
-        # NOTE: Removed batch_size normalization - keeping consistent with CrossEntropy
-        dZ = 2 * (y_pred - y_true) 
+        # Normalize by batch_size
+        dZ = 2 * (y_pred - y_true) / batch_size
         return dZ
 
 class CrossEntropy:
@@ -76,11 +76,12 @@ class CrossEntropy:
         Returns:
             dZ: shape = (batch_size, output_size) - Gradient of loss wrt output predictions
         """
+        batch_size = y_true.shape[0]
         # If model output is raw logits, apply softmax
         softmax = Softmax()
         y_pred_softmax = softmax.forward(y_pred)
-        # NOTE: If normalized by batch_size in loss, then do not normalize gradient by batch_size. Normalize either in loss or gradient.
-        dZ = (y_pred_softmax - y_true)
+        # Normalize by batch_size
+        dZ = (y_pred_softmax - y_true) / batch_size
         return dZ
 
 if __name__ == "__main__":
