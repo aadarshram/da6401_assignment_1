@@ -15,12 +15,20 @@ class MSE:
         """
         Compute Mean Squared Error Loss
         Args:
-            y_true: shape = (batch_size, output_size) - True labels
+            y_true: shape = (batch_size, output_size) - True labels (one-hot),
+                    OR (batch_size, 1) / (batch_size,) - class indices
             y_pred: shape = (batch_size, output_size) - Predicted outputs
         Returns:
             Loss: shape = (1,) - MSE Loss
         """
-        batch_size = y_true.shape[0]
+        batch_size = y_pred.shape[0]
+        output_size = y_pred.shape[1] if y_pred.ndim > 1 else y_pred.shape[0]
+        # Convert class indices to one-hot if necessary
+        if y_true.ndim == 1 or (y_true.ndim == 2 and y_true.shape[1] != output_size):
+            indices = y_true.flatten().astype(int)
+            y_true_onehot = np.zeros((batch_size, output_size))
+            y_true_onehot[np.arange(batch_size), indices] = 1.0
+            y_true = y_true_onehot
         loss = (1 / batch_size) * np.sum((y_true - y_pred) ** 2)
         return loss
     
@@ -28,12 +36,20 @@ class MSE:
         """
         Computes gradient of MSE Loss wrt output predictions
         Args:
-            y_true: shape = (batch_size, output_size) - True labels
+            y_true: shape = (batch_size, output_size) - True labels (one-hot),
+                    OR (batch_size, 1) / (batch_size,) - class indices
             y_pred: shape = (batch_size, output_size) - Predicted outputs
         Returns:
             dZ: shape = (batch_size, output_size) - Gradient of loss wrt output predictions
         """
-        batch_size = y_true.shape[0]
+        batch_size = y_pred.shape[0]
+        output_size = y_pred.shape[1] if y_pred.ndim > 1 else y_pred.shape[0]
+        # Convert class indices to one-hot if necessary
+        if y_true.ndim == 1 or (y_true.ndim == 2 and y_true.shape[1] != output_size):
+            indices = y_true.flatten().astype(int)
+            y_true_onehot = np.zeros((batch_size, output_size))
+            y_true_onehot[np.arange(batch_size), indices] = 1.0
+            y_true = y_true_onehot
         # Normalize by batch_size
         dZ = 2 * (y_pred - y_true) / batch_size
         return dZ
@@ -55,9 +71,7 @@ class CrossEntropy:
         """
         batch_size = y_pred.shape[0]
         output_size = y_pred.shape[1] if y_pred.ndim > 1 else y_pred.shape[0]
-
-        # If model output is raw logits
-        # Apply softmax
+        # Apply softmax to raw logits
         softmax = Softmax()
         y_pred = softmax.forward(y_pred)
         self.output = y_pred # For backprop
@@ -85,7 +99,7 @@ class CrossEntropy:
         """
         batch_size = y_pred.shape[0]
         output_size = y_pred.shape[1] if y_pred.ndim > 1 else y_pred.shape[0]
-        # If model output is raw logits, apply softmax
+        # Apply softmax to raw logits
         softmax = Softmax()
         y_pred_softmax = softmax.forward(y_pred)
         # Convert class indices to one-hot if necessary
@@ -100,14 +114,3 @@ class CrossEntropy:
 
 if __name__ == "__main__":
     pass
-    # # Simple tests
-    # np.random.seed(42)
-    # y_true = np.array([[0, 1, 0], [1, 0, 0]]) # batch_size=2, output_size=3 (one-hot encoded)
-    # y_pred_logits = np.array([[0.2, 0.5, 0.3], [0.6, 0.2, 0.2]]) # batch_size=2, output_size=3 (raw logits)
-    # ce_loss = CrossEntropy()
-    # loss = ce_loss.compute_loss(y_true, y_pred_logits)
-    # dZ = ce_loss.gradient(y_true, y_pred_logits)
-    # mse_loss = MSE()
-    # loss_mse = mse_loss.compute_loss(y_true, y_pred_logits)
-    # dZ_mse = mse_loss.gradient(y_true, y_pred_logits)
-    # print("All tests successful")
