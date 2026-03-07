@@ -77,10 +77,13 @@ class CrossEntropy:
             dZ: shape = (batch_size, output_size) - Gradient of loss wrt output predictions
         """
         batch_size = y_true.shape[0]
+        print(f"y_true: {y_pred}")
         # If model output is raw logits, apply softmax
         softmax = Softmax()
         y_pred_softmax = softmax.forward(y_pred)
-        # Normalize by batch_size for training
+        # Normalize by batch_size
+        print(f"y_true: {y_true}")
+        print(f"y_pred_softmax: {y_pred_softmax}")
         dZ = (y_pred_softmax - y_true) / batch_size
         return dZ
 
