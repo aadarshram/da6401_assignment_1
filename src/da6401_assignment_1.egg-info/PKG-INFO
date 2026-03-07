@@ -1,10 +1,11 @@
+Metadata-Version: 2.4
+Name: da6401_assignment_1
+Version: 0.1.0
+Summary: DA6401 Assignment 1
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+
 # Assignment 1: Multi-Layer Perceptron for Image Classification
-
-## Results and report
-- **Repository link**: https://github.com/aadarshram/da6401_assignment_1 
-- **W&B Report**: https://wandb.ai/ramachandranaadarsh-indian-institute-of-technology-madras/da6401_assignment_1/reports/DA6401-Assignment-1-Report--VmlldzoxNjEyMTg1Ng?accessToken=v7zjwto3ql0mj9famz978npvm7xhqtybcaks74kyetpww038sgm3e6wvx2ugoaux 
-
-## Instructions
 
 ## Overview
 

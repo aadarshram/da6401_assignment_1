@@ -1,0 +1,4 @@
+wandb/
+models/
+da6401_assignment_1/
+*/__pycache__/

@@ -1,0 +1,16 @@
+README.md
+pyproject.toml
+src/ann/__init__.py
+src/ann/activations.py
+src/ann/neural_layer.py
+src/ann/neural_network.py
+src/ann/objective_functions.py
+src/ann/optimizers.py
+src/ann/utils.py
+src/da6401_assignment_1.egg-info/PKG-INFO
+src/da6401_assignment_1.egg-info/SOURCES.txt
+src/da6401_assignment_1.egg-info/dependency_links.txt
+src/da6401_assignment_1.egg-info/top_level.txt
+src/utils/__init__.py
+src/utils/data_loader.py
+src/utils/misc.py
