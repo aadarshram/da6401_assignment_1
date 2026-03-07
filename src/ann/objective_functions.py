@@ -81,7 +81,7 @@ class CrossEntropy:
         softmax = Softmax()
         y_pred_softmax = softmax.forward(y_pred)
         # Normalize by batch_size
-        dZ = (y_pred_softmax - y_true) / batch_size
+        dZ = (y_pred_softmax - y_true) # / batch_size
         return dZ
 
 if __name__ == "__main__":
