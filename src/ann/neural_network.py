@@ -128,12 +128,12 @@ class NeuralNetwork:
         grad_b_list = [layer.grad_b for layer in reversed(self.layers) if isinstance(layer, NeuralLayer)]
         
         # create explicit object arrays to avoid numpy trying to broadcast shapes
-        grad_W = np.empty(len(grad_W_list), dtype=object)
-        grad_b = np.empty(len(grad_b_list), dtype=object)
+        self.grad_W = np.empty(len(grad_W_list), dtype=object)
+        self.grad_b = np.empty(len(grad_b_list), dtype=object)
         for i, (gw, gb) in enumerate(zip(grad_W_list, grad_b_list)):
-            grad_W[i] = gw
-            grad_b[i] = gb
-        return grad_W, grad_b
+            self.grad_W[i] = gw
+            self.grad_b[i] = gb
+        return self.grad_W, self.grad_b
     
     def update_weights(self, y_true, y_pred, X):
         """
