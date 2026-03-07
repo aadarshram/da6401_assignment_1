@@ -123,9 +123,9 @@ class NeuralNetwork:
         for layer in reversed(self.layers):
             dZ = layer.backward(dZ)
 
-        # Collect gradients in FORWARD order (W0, W1, W2...) not reversed order
-        grad_W_list = [layer.grad_W for layer in self.layers if isinstance(layer, NeuralLayer)]
-        grad_b_list = [layer.grad_b for layer in self.layers if isinstance(layer, NeuralLayer)]
+        # grad_Ws[0] = last (output) layer, grad_Ws[1] = second-to-last, etc.
+        grad_W_list = [layer.grad_W for layer in reversed(self.layers) if isinstance(layer, NeuralLayer)]
+        grad_b_list = [layer.grad_b for layer in reversed(self.layers) if isinstance(layer, NeuralLayer)]
         # create explicit object arrays to avoid numpy trying to broadcast shapes
         grad_W = np.empty(len(grad_W_list), dtype=object)
         grad_b = np.empty(len(grad_b_list), dtype=object)
