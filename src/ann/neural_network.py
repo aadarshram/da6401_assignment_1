@@ -300,13 +300,21 @@ class NeuralNetwork:
         return d
 
     def set_weights(self, weight_dict):
+        errors = []
+        weight_info = []
+        
         for i, layer in enumerate(self.layers):
             if isinstance(layer, NeuralLayer):
                 w_key = f"W{i}"
                 b_key = f"b{i}"
+                
                 if w_key in weight_dict:
                     loaded_W = weight_dict[w_key].copy()
                     expected_shape = (layer.input_size, layer.output_size)
+                    
+                    # Log weight info
+                    weight_info.append(f"  W{i}: loaded={loaded_W.shape}, expected={expected_shape} "
+                                     f"[in={layer.input_size}, out={layer.output_size}]")
                     
                     # Check if dimensions match exactly
                     if loaded_W.shape == expected_shape:
@@ -316,26 +324,38 @@ class NeuralNetwork:
                         print(f"Warning: W{i} loaded with transposed shape {loaded_W.shape}, expected {expected_shape}. Auto-transposing.")
                         layer.W = loaded_W.T
                     else:
-                        raise ValueError(f"Weight dimension mismatch for W{i}: loaded shape {loaded_W.shape}, "
-                                       f"expected {expected_shape} or transposed {(layer.output_size, layer.input_size)}. "
-                                       f"Layer expects input_size={layer.input_size}, output_size={layer.output_size}")
+                        errors.append(f"W{i}: loaded shape {loaded_W.shape}, "
+                                    f"expected {expected_shape} or transposed {(layer.output_size, layer.input_size)}")
+                        # Don't load incompatible weights
                 
                 if b_key in weight_dict:
                     loaded_b = weight_dict[b_key].copy()
                     expected_b_shape = (1, layer.output_size)
                     
+                    weight_info.append(f"  b{i}: loaded={loaded_b.shape}, expected={expected_b_shape}")
+                    
                     # Handle different bias shapes
                     if loaded_b.shape == expected_b_shape:
                         layer.b = loaded_b
                     elif loaded_b.shape == (layer.output_size,):
-                        # Reshape 1D bias to 2D
                         layer.b = loaded_b.reshape(1, -1)
                     elif loaded_b.shape == (layer.output_size, 1):
-                        # Transpose if needed
                         layer.b = loaded_b.T
                     else:
-                        raise ValueError(f"Bias dimension mismatch for b{i}: loaded shape {loaded_b.shape}, "
-                                       f"expected {expected_b_shape}")
+                        errors.append(f"b{i}: loaded shape {loaded_b.shape}, expected {expected_b_shape}")
+        
+        # Print all weight information
+        print("\n=== Weight Loading Details ===")
+        for info in weight_info:
+            print(info)
+        print("==============================\n")
+        
+        # If there were errors, raise comprehensive error message
+        if errors:
+            error_msg = "Weight dimension mismatch(es) detected:\n" + "\n".join(errors)
+            error_msg += f"\n\nModel architecture: input_size={self.input_size}, hidden_size={self.hidden_size}, output_size={self.output_size}"
+            error_msg += f"\nTotal layers: {len([l for l in self.layers if isinstance(l, NeuralLayer)])}"
+            raise ValueError(error_msg)
 
     def save_weights(self, model_save_path):
         """
