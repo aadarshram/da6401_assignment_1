@@ -38,16 +38,11 @@ class NeuralLayer:
         Returns:
             dX: shape = (batch_size, input_size) - Gradient of loss wrt layer input
         """
-        # Debug: Check if X is stored correctly
-        if hasattr(self, '_debug_layer_name'):
-            print(f"\n[DEBUG {self._debug_layer_name}] Backward:")
-            print(f"  self.X shape: {self.X.shape}")
-            print(f"  self.X first 3 rows:\n{self.X[:3] if self.X.shape[0] >= 3 else self.X}")
-            print(f"  dZ shape: {dZ.shape}")
+        batch_size = self.X.shape[0]
         
-        self.grad_W = np.matmul(self.X.T, dZ) # shape: (input_size, batch_size) x (batch_size, output_size) = (input_size, output_size)
-        self.grad_b = np.sum(dZ, axis=0, keepdims=True) # shape: (1, output_size)
-        # NOTE: grad_W, grad_b normalized by batch_size in the loss function.
+        self.grad_W = np.matmul(self.X.T, dZ) / batch_size # Average gradient over batch
+        self.grad_b = np.sum(dZ, axis=0, keepdims=True) / batch_size # Average gradient over batch
+        
         dX = np.matmul(dZ, self.W.T) # shape: (batch_size, ouptut_size) x (output_size, input_size) = (batch_size, input_size)
         return dX
 
