@@ -126,6 +126,10 @@ class NeuralNetwork:
         # grad_Ws[0] = last (output) layer, grad_Ws[1] = second-to-last, etc.
         grad_W_list = [layer.grad_W for layer in reversed(self.layers) if isinstance(layer, NeuralLayer)]
         grad_b_list = [layer.grad_b for layer in reversed(self.layers) if isinstance(layer, NeuralLayer)]
+        
+        # Return transposed gradients (autograder may expect different shape)
+        grad_W_list = [gw.T for gw in grad_W_list]
+        
         # create explicit object arrays to avoid numpy trying to broadcast shapes
         grad_W = np.empty(len(grad_W_list), dtype=object)
         grad_b = np.empty(len(grad_b_list), dtype=object)
