@@ -17,7 +17,7 @@ def parse_arguments():
     Parse command-line arguments for inference.
     """    
     parser = argparse.ArgumentParser(description='Run inference on test set')
-    parser.add_argument('-m_p', '--model_path', type=str, default="models/best_model.npz", help='Path to saved model weights (relative path)')
+    parser.add_argument('-m_p', '--model_path', type=str, default="models/best_model.npy", help='Path to saved model weights (relative path)')
     parser.add_argument('-d', '--dataset', type=str, default="mnist", help='Dataset to evaluate on. Supported: mnist, fashion_mnist. For custom datasets, implement loading logic in main().')
 
     parser.add_argument('-b', '--batch_size', type=int, default=32, help='Batch size for inference')
@@ -35,10 +35,13 @@ def parse_arguments():
 
 def load_model(model_path):
     """
-    Load weights from saved model
+    Load weights from saved model (.npy or .npz format)
     """
-    data = np.load(model_path, allow_pickle=True)
-    return dict(data.items())
+    if model_path.endswith('.npz'):
+        data = np.load(model_path, allow_pickle=True)
+        return dict(data.items())
+    else:  # .npy format
+        return np.load(model_path, allow_pickle=True).item()
 
 def evaluate_model(model, X_test, y_test): 
     """
@@ -65,11 +68,11 @@ def main():
         Dictionary - logits, loss, accuracy, f1, precision, recall
     """
     # Initialize
-    wandb.init(project="da6401_assignment_1", name='inference_results') # mode="disabled" ; for testing
+    # wandb.init(project="da6401_assignment_1", name='inference_results') # mode="disabled" ; for testing
     args = parse_arguments()
     
     # Load config from saved model to ensure architecture matches
-    config_path = args.model_path.replace("_model.npz", "_config.json")
+    config_path = args.model_path.replace("_model.npy", "_config.json").replace(".npy", "_config.json")
     try:
         with open(config_path, "r") as f:
             saved_config = json.load(f)
@@ -98,42 +101,42 @@ def main():
     # with open(f"models/test/config_f1_{results['f1_score']:.4f}.json", "w") as f:
     #     json.dump(vars(args), f, indent=4)
 
-    # Experiment: Error analysis
-    logits = results['logits']
-    # Probabilities after softmax
-    probs = Softmax().forward(logits)
-    # Convert one-hot encoded labels to class indices
-    y_true_labels = np.argmax(y_val, axis=1) if y_val.ndim > 1 else y_val
-    # Plot confusion matrix in wandb
-    wandb.log({"confusion_matrix": wandb.plot.confusion_matrix(probs=probs, y_true=y_true_labels, class_names=[str(i) for i in range(args.output_size)])})
-    # Log some misclassified examples in wandb
-    misclassified_indices = np.where(np.argmax(probs, axis=1) != y_true_labels)[0]
-    misclassified_images = []
+    # # Experiment: Error analysis
+    # logits = results['logits']
+    # # Probabilities after softmax
+    # probs = Softmax().forward(logits)
+    # # Convert one-hot encoded labels to class indices
+    # y_true_labels = np.argmax(y_val, axis=1) if y_val.ndim > 1 else y_val
+    # # Plot confusion matrix in wandb
+    # wandb.log({"confusion_matrix": wandb.plot.confusion_matrix(probs=probs, y_true=y_true_labels, class_names=[str(i) for i in range(args.output_size)])})
+    # # Log some misclassified examples in wandb
+    # misclassified_indices = np.where(np.argmax(probs, axis=1) != y_true_labels)[0]
+    # misclassified_images = []
 
-    for idx in misclassified_indices[:10]:
-        img = X_val[idx].reshape(28,28)
-        true_label = y_true_labels[idx]
-        pred_label = np.argmax(probs[idx])
+    # for idx in misclassified_indices[:10]:
+    #     img = X_val[idx].reshape(28,28)
+    #     true_label = y_true_labels[idx]
+    #     pred_label = np.argmax(probs[idx])
 
-        misclassified_images.append(
-            wandb.Image(img, caption=f"True:{true_label} Pred:{pred_label}")
-        )
+    #     misclassified_images.append(
+    #         wandb.Image(img, caption=f"True:{true_label} Pred:{pred_label}")
+    #     )
 
-    wandb.log({"misclassified_examples": misclassified_images})
-    # Log low confidence examples from that correctly predicted (where max prob is below a threshold)
-    low_confidence_indices = np.where((np.max(probs, axis=1) < 0.6) & (np.argmax(probs, axis=1) == y_true_labels))[0]
-    low_conf_images = []
+    # wandb.log({"misclassified_examples": misclassified_images})
+    # # Log low confidence examples from that correctly predicted (where max prob is below a threshold)
+    # low_confidence_indices = np.where((np.max(probs, axis=1) < 0.6) & (np.argmax(probs, axis=1) == y_true_labels))[0]
+    # low_conf_images = []
 
-    for idx in low_confidence_indices[:10]:
-        img = X_val[idx].reshape(28,28)
-        true_label = y_true_labels[idx]
-        pred_label = np.argmax(probs[idx])
-        conf = np.max(probs[idx])
+    # for idx in low_confidence_indices[:10]:
+    #     img = X_val[idx].reshape(28,28)
+    #     true_label = y_true_labels[idx]
+    #     pred_label = np.argmax(probs[idx])
+    #     conf = np.max(probs[idx])
 
-        low_conf_images.append(
-            wandb.Image(img, caption=f"True:{true_label} Pred:{pred_label} Conf:{conf:.2f}")
-        )
-    wandb.log({"low_confidence_examples": low_conf_images})
+    #     low_conf_images.append(
+    #         wandb.Image(img, caption=f"True:{true_label} Pred:{pred_label} Conf:{conf:.2f}")
+    #     )
+    # wandb.log({"low_confidence_examples": low_conf_images})
 
     return results
 

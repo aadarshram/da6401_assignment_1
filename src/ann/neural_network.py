@@ -75,15 +75,28 @@ class NeuralNetwork:
         Forward propagation through all layers.
         
         Args:
-            X: shape = (batch_size, input_size)- Input data
+            X: shape = (batch_size, input_size) or (input_size,) - Input data
             
         Returns:
-            Output logits: shape = (batch_size, output_size)
+            Output logits: shape = (batch_size, output_size) or (output_size,)
         """
+        # Handle single sample input: reshape (input_size,) to (1, input_size)
+        original_shape = X.shape
+        if X.ndim == 1:
+            X = X.reshape(1, -1)
+            single_sample = True
+        else:
+            single_sample = False
+            
         # activations = []
         for layer in self.layers:
             X = layer.forward(X)
             # activations.append(X)
+        
+        # If input was single sample, return single sample output
+        if single_sample:
+            X = X.flatten()
+            
         return X #, activations # return activation for dead neuron logging
     
     def backward(self, y_true, y_pred):
@@ -91,12 +104,18 @@ class NeuralNetwork:
         Backward propagation to compute gradients.
         
         Args:
-            y_true: shape = (batch_size, output_size) - True labels
-            y_pred: shape = (batch_size, output_size) - Predicted outputs
+            y_true: shape = (batch_size, output_size) or (output_size,) - True labels
+            y_pred: shape = (batch_size, output_size) or (output_size,) - Predicted outputs
             
         Returns:
             return grad_w, grad_b
         """
+        # Handle single sample: reshape (output_size,) to (1, output_size)
+        if y_true.ndim == 1:
+            y_true = y_true.reshape(1, -1)
+        if y_pred.ndim == 1:
+            y_pred = y_pred.reshape(1, -1)
+            
         # Initial gradient dZ
         dZ = self.loss.gradient(y_true, y_pred)
 
@@ -292,10 +311,13 @@ class NeuralNetwork:
 
     def save_weights(self, model_save_path):
         """
-        Save model weights to disk.
+        Save model weights to disk as .npy file.
         """
         weights = self.get_weights()
-        np.savez(model_save_path, **weights)
+        # Ensure path has .npy extension
+        if not model_save_path.endswith('.npy'):
+            model_save_path = model_save_path.replace('.npz', '.npy')
+        np.save(model_save_path, weights, allow_pickle=True)
 
 if __name__ == "__main__":
     # Simple tests

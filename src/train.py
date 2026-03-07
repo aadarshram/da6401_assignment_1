@@ -41,7 +41,7 @@ def parse_arguments():
     parser.add_argument('-wd', '--weight_decay', type=float, default=0.0001, help='L2 regularization strength (default: 0.0001)')
     parser.add_argument('-w_i', '--weight_init', type=str, default="xavier", help='Weight initialization method (random or xavier)')
     parser.add_argument('-w_p', '--wandb_project', type=str, default="da6401_assignment_1", help='W&B project name')
-    parser.add_argument('-m_p', '--model_path', type=str, default="models/fmnist_best_model.npz", help='Path to save trained model (relative path)') # models/best_model.npz
+    parser.add_argument('-m_p', '--model_path', type=str, default="models/best_model.npy", help='Path to save trained model (relative path)') # models/best_model.npy
     # OPTIONAL
 
     # Optional arguements for custom datasets. For MNIST and Fashion-MNIST, input and output sizes are fixed to 784 and 10 respectively.
@@ -103,7 +103,8 @@ def main():
     # Finish
     model.save_weights(args.model_path)
     # Save config
-    with open(args.model_path.replace("_model.npz", "_config.json"), "w") as f: # best_config,json
+    config_path = args.model_path.replace("_model.npy", "_config.json").replace(".npy", "_config.json")
+    with open(config_path, "w") as f:
         json.dump(vars(args), f, indent=4)
     wandb.finish()
     print("Training complete!")
