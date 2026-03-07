@@ -293,27 +293,34 @@ class NeuralNetwork:
 
     def get_weights(self):
         d = {}
-        for i, layer in enumerate(self.layers):
+        layer_idx = 0
+        for layer in self.layers:
             if isinstance(layer, NeuralLayer):
-                d[f"W{i}"] = layer.W.copy()
-                d[f"b{i}"] = layer.b.copy()
+                d[f"W{layer_idx}"] = layer.W.copy()
+                d[f"b{layer_idx}"] = layer.b.copy()
+                layer_idx += 1
         return d
 
     def set_weights(self, weight_dict):
         errors = []
         weight_info = []
         
-        for i, layer in enumerate(self.layers):
+        # Log what keys are available in weight_dict
+        available_keys = sorted([k for k in weight_dict.keys()])
+        print(f"\n=== Available weight keys in dict: {available_keys} ===\n")
+        
+        layer_idx = 0
+        for layer in self.layers:
             if isinstance(layer, NeuralLayer):
-                w_key = f"W{i}"
-                b_key = f"b{i}"
+                w_key = f"W{layer_idx}"
+                b_key = f"b{layer_idx}"
                 
                 if w_key in weight_dict:
                     loaded_W = weight_dict[w_key].copy()
                     expected_shape = (layer.input_size, layer.output_size)
                     
                     # Log weight info
-                    weight_info.append(f"  W{i}: loaded={loaded_W.shape}, expected={expected_shape} "
+                    weight_info.append(f"  W{layer_idx}: loaded={loaded_W.shape}, expected={expected_shape} "
                                      f"[in={layer.input_size}, out={layer.output_size}]")
                     
                     # Check if dimensions match exactly
@@ -321,10 +328,10 @@ class NeuralNetwork:
                         layer.W = loaded_W
                     # Check if dimensions are transposed
                     elif loaded_W.shape == (layer.output_size, layer.input_size):
-                        print(f"Warning: W{i} loaded with transposed shape {loaded_W.shape}, expected {expected_shape}. Auto-transposing.")
+                        print(f"Warning: W{layer_idx} loaded with transposed shape {loaded_W.shape}, expected {expected_shape}. Auto-transposing.")
                         layer.W = loaded_W.T
                     else:
-                        errors.append(f"W{i}: loaded shape {loaded_W.shape}, "
+                        errors.append(f"W{layer_idx}: loaded shape {loaded_W.shape}, "
                                     f"expected {expected_shape} or transposed {(layer.output_size, layer.input_size)}")
                         # Don't load incompatible weights
                 
@@ -332,7 +339,7 @@ class NeuralNetwork:
                     loaded_b = weight_dict[b_key].copy()
                     expected_b_shape = (1, layer.output_size)
                     
-                    weight_info.append(f"  b{i}: loaded={loaded_b.shape}, expected={expected_b_shape}")
+                    weight_info.append(f"  b{layer_idx}: loaded={loaded_b.shape}, expected={expected_b_shape}")
                     
                     # Handle different bias shapes
                     if loaded_b.shape == expected_b_shape:
@@ -342,7 +349,9 @@ class NeuralNetwork:
                     elif loaded_b.shape == (layer.output_size, 1):
                         layer.b = loaded_b.T
                     else:
-                        errors.append(f"b{i}: loaded shape {loaded_b.shape}, expected {expected_b_shape}")
+                        errors.append(f"b{layer_idx}: loaded shape {loaded_b.shape}, expected {expected_b_shape}")
+                
+                layer_idx += 1
         
         # Print all weight information
         print("\n=== Weight Loading Details ===")
