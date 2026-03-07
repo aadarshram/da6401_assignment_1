@@ -47,23 +47,29 @@ class CrossEntropy:
         """
         Compute Cross-Entropy Loss
         Args:
-            y_true: shape = (batch_size, output_size) - True labels 
+            y_true: shape = (batch_size, output_size) - True labels (one-hot),
+                    OR (batch_size, 1) / (batch_size,) - class indices
             y_pred: shape = (batch_size, output_size) - Predictions
         Returns:
             Loss: shape = (1,) - Cross-Entropy Loss
         """
-        batch_size = y_true.shape[0]
+        batch_size = y_pred.shape[0]
+        output_size = y_pred.shape[1] if y_pred.ndim > 1 else y_pred.shape[0]
 
         # If model output is raw logits
         # Apply softmax
         softmax = Softmax()
         y_pred = softmax.forward(y_pred)
         self.output = y_pred # For backprop
-        # Else use y_pred directly.
+        # Convert class indices to one-hot if necessary
+        if y_true.ndim == 1 or (y_true.ndim == 2 and y_true.shape[1] != output_size):
+            indices = y_true.flatten().astype(int)
+            y_true_onehot = np.zeros((batch_size, output_size))
+            y_true_onehot[np.arange(batch_size), indices] = 1.0
+            y_true = y_true_onehot
         # Add small epsilon for numerical stability - to avoid log(0) and log(1)
         epsilon = 1e-15
         y_pred_clipped = np.clip(y_pred, epsilon, 1 - epsilon)
-        # NOTE: If normalized by batch_size here, then the gradient will not be normalized by batch_size. Normalize either in loss or gradient.
         loss = (-1 / batch_size) * np.sum(y_true * np.log(y_pred_clipped))
         return loss
     
@@ -71,19 +77,24 @@ class CrossEntropy:
         """
         Computes gradient of Cross-Entropy Loss wrt output predictions
         Args:
-            y_true: shape = (batch_size, output_size) - True labels 
+            y_true: shape = (batch_size, output_size) - True labels (one-hot),
+                    OR (batch_size, 1) / (batch_size,) - class indices
             y_pred: shape = (batch_size, output_size) - Predictions (raw logits)
         Returns:
             dZ: shape = (batch_size, output_size) - Gradient of loss wrt output predictions
         """
-        batch_size = y_true.shape[0]
-        print(f"y_true: {y_pred}")
+        batch_size = y_pred.shape[0]
+        output_size = y_pred.shape[1] if y_pred.ndim > 1 else y_pred.shape[0]
         # If model output is raw logits, apply softmax
         softmax = Softmax()
         y_pred_softmax = softmax.forward(y_pred)
+        # Convert class indices to one-hot if necessary
+        if y_true.ndim == 1 or (y_true.ndim == 2 and y_true.shape[1] != output_size):
+            indices = y_true.flatten().astype(int)
+            y_true_onehot = np.zeros((batch_size, output_size))
+            y_true_onehot[np.arange(batch_size), indices] = 1.0
+            y_true = y_true_onehot
         # Normalize by batch_size
-        print(f"y_true: {y_true}")
-        print(f"y_pred_softmax: {y_pred_softmax}")
         dZ = (y_pred_softmax - y_true) / batch_size
         return dZ
 

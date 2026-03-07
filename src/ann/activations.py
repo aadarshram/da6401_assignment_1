@@ -82,9 +82,8 @@ class Softmax:
             Z: shape = (batch_size, input_size) = Output after activation
         """
         self.Z = Z # Store input for backprop
-        # exp_Z = np.exp(Z - np.max(Z, axis=1, keepdims=True)) # for numerical stability (e^100 ~ unstable); Subtracting c from all exponents does not change the output
-        # self.output = exp_Z / np.sum(exp_Z, axis=1, keepdims=True)
-        self.output = np.exp(Z) / np.sum(np.exp(Z), axis=1, keepdims=True) # shape: (batch_size, input_size)
+        exp_Z = np.exp(Z - np.max(Z, axis=1, keepdims=True)) # for numerical stability (e^100 ~ unstable); Subtracting c from all exponents does not change the output
+        self.output = exp_Z / np.sum(exp_Z, axis=1, keepdims=True)
         return self.output
     
     def backward(self, dZ):
