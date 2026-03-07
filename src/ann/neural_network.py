@@ -158,6 +158,7 @@ class NeuralNetwork:
         train_losses = []
         val_losses = []
         gradient_norms = [] # per epoch
+        
         # first_layer_grad_norms = [] # per epoch - to observe vanishing/exploding gradients in the first layer separately.
         
         # # Track activations for each Tanh layer dynamically
@@ -303,13 +304,7 @@ class NeuralNetwork:
                 layer_idx += 1
         return d
 
-    def set_weights(self, weight_dict):
-        errors = []
-        weight_info = []
-        
-        # Log what keys are available in weight_dict
-        available_keys = sorted([k for k in weight_dict.keys()])
-        print(f"\n=== Available weight keys in dict: {available_keys} ===\n")
+    def set_weights(self, weight_dict):        
         
         layer_idx = 0
         for layer in self.layers:
@@ -321,27 +316,20 @@ class NeuralNetwork:
                     loaded_W = weight_dict[w_key].copy()
                     expected_shape = (layer.input_size, layer.output_size)
                     
-                    # Log weight info
-                    weight_info.append(f"  W{layer_idx}: loaded={loaded_W.shape}, expected={expected_shape} "
-                                     f"[in={layer.input_size}, out={layer.output_size}]")
-                    
                     # Check if dimensions match exactly
                     if loaded_W.shape == expected_shape:
                         layer.W = loaded_W
                     # Check if dimensions are transposed
                     elif loaded_W.shape == (layer.output_size, layer.input_size):
-                        print(f"Warning: W{layer_idx} loaded with transposed shape {loaded_W.shape}, expected {expected_shape}. Auto-transposing.")
                         layer.W = loaded_W.T
                     else:
-                        errors.append(f"W{layer_idx}: loaded shape {loaded_W.shape}, "
-                                    f"expected {expected_shape} or transposed {(layer.output_size, layer.input_size)}")
+                        raise ValueError(f"W{layer_idx} dimension mismatch: loaded {loaded_W.shape}, expected {expected_shape} for layer with input_size={layer.input_size} and output_size={layer.output_size}")
                         # Don't load incompatible weights
                 
                 if b_key in weight_dict:
                     loaded_b = weight_dict[b_key].copy()
                     expected_b_shape = (1, layer.output_size)
                     
-                    weight_info.append(f"  b{layer_idx}: loaded={loaded_b.shape}, expected={expected_b_shape}")
                     
                     # Handle different bias shapes
                     if loaded_b.shape == expected_b_shape:
@@ -351,22 +339,9 @@ class NeuralNetwork:
                     elif loaded_b.shape == (layer.output_size, 1):
                         layer.b = loaded_b.T
                     else:
-                        errors.append(f"b{layer_idx}: loaded shape {loaded_b.shape}, expected {expected_b_shape}")
+                        raise ValueError(f"b{layer_idx} dimension mismatch: loaded {loaded_b.shape}, expected {expected_b_shape} for layer with output_size={layer.output_size}")
                 
                 layer_idx += 1
-        
-        # Print all weight information
-        print("\n=== Weight Loading Details ===")
-        for info in weight_info:
-            print(info)
-        print("==============================\n")
-        
-        # If there were errors, raise comprehensive error message
-        if errors:
-            error_msg = "Weight dimension mismatch(es) detected:\n" + "\n".join(errors)
-            error_msg += f"\n\nModel architecture: input_size={self.input_size}, hidden_size={self.hidden_size}, output_size={self.output_size}"
-            error_msg += f"\nTotal layers: {len([l for l in self.layers if isinstance(l, NeuralLayer)])}"
-            raise ValueError(error_msg)
 
     def save_weights(self, model_save_path):
         """
@@ -379,27 +354,4 @@ class NeuralNetwork:
         np.save(model_save_path, weights, allow_pickle=True)
 
 if __name__ == "__main__":
-    # Simple tests
-    # Test if train, eval, save_weights and load_weights methods run
-    np.random.seed(42)
-    cli_args = lambda: None # Simple namespace for CLI args
-    cli_args.dataset = "mnist"
-    cli_args.batch_size = 32
-    cli_args.hidden_size = [64, 32]
-    cli_args.activation = "relu"
-    cli_args.weight_init = "xavier"
-    cli_args.loss = "cross_entropy"
-    cli_args.optimizer = "sgd"
-    cli_args.learning_rate = 0.01
-    cli_args.weight_decay = 0.0001
-    import wandb
-    wandb.init(project="da6401_assignment_1", name="test_run_neural_network", reinit=True, mode="disabled") # "disabled" mode for testing without logging to wandb server.
-    model = NeuralNetwork(cli_args)
-    X = np.random.randn(10, 784) # batch_size=10, input_ize=784
-    y = np.random.randint(0, 10, size=(10, 10)) # batch_size=10, output_size=10 (one-hot encoded)
-    model.train(X, y, epochs=5, batch_size=2)
-    y_pred_logits, loss, accuracy, precision, recall, f1_score = model.evaluate(X, y)
-    model.save_weights("models/test_model_weights.npz")
-    model.load_weights("models/test_model_weights.npz")
-    wandb.finish()
-    print("All tests successful")
+    pass 

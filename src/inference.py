@@ -142,5 +142,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    # Simple tests
-    # run with: python src/inference.py --model_path models/test_model.npz --dataset mnist

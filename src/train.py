@@ -69,7 +69,7 @@ def main():
     args = parse_arguments()
 
     # Logging
-    wandb.init(project=args.wandb_project, name='fmnist_best_model') # mode="disabled" ; for testing
+    wandb.init(project=args.wandb_project) # mode="disabled" ; for testing
 
     # Define custom metrics for separate x-axes
     # wandb.define_metric("iteration")
@@ -112,8 +112,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-    # Simple tests
-    # Update mode='diabled' in wandb.init() in main() to run without logging to wandb server for testing purposes.
-    # run in cli with: python src/train.py --epochs 1 --wandb_project "test_run_da6401_1" --model_path "models/test_model.npz"
-    # print("All tests successful")
 

@@ -46,12 +46,4 @@ class NeuralLayer:
         return dX
 
 if __name__ == "__main__":
-    # Simple tests
-    # Check if initialize, fwd and bwd methods run
-    np.random.seed(42)
-    layer = NeuralLayer(input_size=4, output_size=3, weight_init='xavier')
-    X = np.random.randn(5, 4) # batch_size=5, input_size=4
-    Z = layer.forward(X)
-    dZ = np.random.randn(5, 3) # batch_size=5, output_size=3
-    dX = layer.backward(dZ)
-    print("All tests successful")
+    pass
