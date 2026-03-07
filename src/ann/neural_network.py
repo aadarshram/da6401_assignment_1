@@ -118,10 +118,12 @@ class NeuralNetwork:
             
         # Initial gradient dZ
         dZ = self.loss.gradient(y_true, y_pred)
+        print(f"Initial dZ from loss backward: {dZ}")
 
         # Backprop
         for layer in reversed(self.layers):
             dZ = layer.backward(dZ)
+            print(f"After backward through layer {layer.__class__.__name__}, dZ: {dZ}")
 
         # grad_Ws[0] = last (output) layer, grad_Ws[1] = second-to-last, etc.
         grad_W_list = [layer.grad_W for layer in reversed(self.layers) if isinstance(layer, NeuralLayer)]
